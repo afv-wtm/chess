@@ -1,0 +1,64 @@
+# ARISH VIRANI
+# Re-simulate the full 60-player tournament with detailed match results
+import numpy as np
+import pandas as pd
+
+def simulate_full_swiss_tournament(num_players, num_rounds):
+    players = [f'Player {i+1}' for i in range(num_players)]
+    scores = {p: 0 for p in players}
+    history = {p: [] for p in players}
+    player_ids = {p: np.random.randint(10000000, 99999999) for p in players}
+    ratings = {p: np.random.randint(2200, 2600) for p in players}
+    feds = {p: np.random.choice(['USA', 'IND', 'CAN', 'PER', 'ESP', 'FRA', 'CHN']) for p in players}
+
+    for rnd in range(1, num_rounds + 1):
+        paired = list(players)
+        np.random.shuffle(paired)
+        for i in range(0, num_players, 2):
+            if i + 1 < num_players:
+                p1, p2 = paired[i], paired[i+1]
+                result = np.random.choice(['win', 'loss', 'draw'], p=[0.45, 0.45, 0.10])
+                color = lambda: 'w' if np.random.rand() > 0.5 else 'b'
+                if result == 'win':
+                    scores[p1] += 1
+                    history[p1].append(f"W{p2.split()[-1]} ({color()})")
+                    history[p2].append(f"L{p1.split()[-1]} ({color()})")
+                elif result == 'loss':
+                    scores[p2] += 1
+                    history[p1].append(f"L{p2.split()[-1]} ({color()})")
+                    history[p2].append(f"W{p1.split()[-1]} ({color()})")
+                else:
+                    scores[p1] += 0.5
+                    scores[p2] += 0.5
+                    history[p1].append(f"D{p2.split()[-1]} ({color()})")
+                    history[p2].append(f"D{p1.split()[-1]} ({color()})")
+            else:
+                p1 = paired[i]
+                scores[p1] += 1
+                history[p1].append("Bye (W)")
+
+    # Build final DataFrame
+    records = []
+    for p in players:
+        rounds = history[p] + [""] * (num_rounds - len(history[p]))
+        records.append({
+            'Player': p,
+            'ID': player_ids[p],
+            'Rating': ratings[p],
+            'Fed': feds[p],
+            **{f'Rd {i+1}': rounds[i] for i in range(num_rounds)},
+            'Total': scores[p]
+        })
+
+    df = pd.DataFrame(records)
+    df.sort_values(by='Total', ascending=False, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    df.index += 1
+    df.insert(0, 'Rank', df.index)
+    return df
+
+# Simulate and display full standings
+full_standings_df = simulate_full_swiss_tournament(num_players=60, num_rounds=7)
+#tools.display_dataframe_to_user(name="Full Swiss Tournament Standings (Chicago Open Style)", dataframe=full_standings_df)
+print(full_standings_df)
+
