@@ -1,3 +1,4 @@
+# ARISH VIRANI
 # Re-simulate the full 60-player tournament with detailed match results
 def simulate_full_swiss_tournament(num_players, num_rounds):
     players = [f'Player {i+1}' for i in range(num_players)]
